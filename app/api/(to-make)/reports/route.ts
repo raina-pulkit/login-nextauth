@@ -1,0 +1,1 @@
+// GET a list of all routes (only ones which user has access to or everything if he is admin)

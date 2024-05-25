@@ -80,7 +80,7 @@ const AuthForm = ({ login }: { login: boolean }) => {
       } catch (e) {
         setShowAlert(true);
         setAuthError({
-          title: res.message,
+          title: res ? res.message : "Error",
           msg: e.message,
         });
       }
