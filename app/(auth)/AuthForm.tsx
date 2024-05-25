@@ -59,7 +59,7 @@ const AuthForm = ({ login }: { login: boolean }) => {
           redirect: false,
         });
 
-        if (!res || res === undefined) {
+        if (!res || (res === undefined)) {
           setShowAlert(true);
           setAuthError({
             title: "Login error",
