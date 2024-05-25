@@ -1,0 +1,79 @@
+1. Install next-auth bcrypt @prisma/client @auth/prisma-adapter prisma --save-dev
+2. Make api/auth/[...nextauth]/route.ts
+3. Make global prisma client:
+	---utils/db.ts---
+	import { PrismaClient } from "@prisma/client";
+
+	const prismaClientSingleton = () => {
+	return new PrismaClient();
+	};
+
+	type PrismaClientSingleton = ReturnType<typeof prismaClientSingleton>;
+
+	const globalForPrisma = globalThis as unknown as {
+	prisma: PrismaClientSingleton | undefined;
+	};
+
+	const prisma = globalForPrisma.prisma ?? prismaClientSingleton();
+
+	export default prisma;
+
+	if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+
+4. Run: openssl rand -base64 32		and save the value as NEXTAUTH_SECRET in .env
+
+5. run - npx prisma init - 	to create schema
+6. Go to .env and enter correct username and password in DATABASE_URL
+7. Either create DB directly and do "npx prisma db pull" or create DB schema in schema.prisma and do "npx prisma db push"
+
+8. Add following to route.ts in nextauth route: 
+
+	import prisma from "@/app/utils/db";
+	import { PrismaAdapter } from "@auth/prisma-adapter";
+	import bcrypt from "bcrypt";
+	import NextAuth, { NextAuthConfig } from "next-auth";
+	import CredentialsProvider from "next-auth/providers/credentials";
+
+	export const authOptions: NextAuthConfig = {
+		adapter: PrismaAdapter(prisma),
+		providers: [
+			CredentialsProvider({
+				name: "Credentials",
+				credentials: {
+					email: {
+						label: "Email",
+						type: "email",
+						placeholder: "User Name"
+					},
+					password: {
+						label: "Password",
+						type: "password"
+					}
+				},
+				// Authorize on initiates when we login (login functionality)
+				async authorize(credentials, req) {
+					// Login functionality
+					
+				},
+			})
+		],
+		session: {
+			strategy: 'jwt',
+		},
+		secret: process.env.NEXTAUTH_SECRET,
+		pages: {
+			signIn: '/login'
+		},
+		debug: process.env.NODE_ENV === "development"
+	};
+
+	const handler = NextAuth(authOptions);
+	export { handler as GET, handler as POST };
+
+9. Make frontEnd for the login & register forms
+10. npx prisma db push
+	npx prisma generate
+
+11. Do all register logic in api/register and login in authorize function of CredentialsProvider( and call api/login from there ).
+12. Make root layout as async and 
+	const session = await getServerSession();
